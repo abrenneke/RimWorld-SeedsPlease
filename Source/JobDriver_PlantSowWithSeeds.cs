@@ -106,7 +106,7 @@ namespace SeedsPlease
                     EndJobWith(JobCondition.Incompletable);
                 }
             };
-            toil.tickAction = () =>
+            toil.tickAction = delegate
             {
                 var actor = toil.actor;
 

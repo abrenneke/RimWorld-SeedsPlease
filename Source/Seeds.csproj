@@ -8,6 +8,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <DebugType>portable</DebugType>
+    <RootNamespace>SeedsPlease</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -26,15 +27,12 @@
     <Content Include="..\Defs\ThingDefs\Items_Seeds_Production.xml" Link="Defs\ThingDefs\Items_Seeds_Production.xml" />
     <Content Include="..\Defs\TraderKindDefs\TraderGreenHouse.xml" Link="Defs\TraderKindDefs\TraderGreenHouse.xml" />
     <Content Include="..\Defs\WorkGiverDefs\WorkGivers.xml" Link="Defs\WorkGiverDefs\WorkGivers.xml" />
+    <Content Include="..\Languages\English\Keyed\SeedsPlease.xml" Link="Languages\English\SeedsPlease.xml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.0.2">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
-    <Reference Include="PickUpAndHaul">
-      <HintPath>..\..\..\..\..\Steam\steamapps\workshop\content\294100\1279012058\1.1\Assemblies\PickUpAndHaul.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <Reference Include="RimWorld.PatchOperationLoadOnDemand" Version="1.2">
       <ExcludeAssets>runtime</ExcludeAssets>
     </Reference>
@@ -47,6 +45,10 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Xml" />
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>..\..\..\RimWorldWin64_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Defs\JobDefs\" />
@@ -55,5 +57,6 @@
     <Folder Include="Defs\ThingDefs\" />
     <Folder Include="Defs\ThingCategoryDefs\" />
     <Folder Include="Defs\RecipeDefs\" />
+    <Folder Include="Languages\English\" />
   </ItemGroup>
 </Project>

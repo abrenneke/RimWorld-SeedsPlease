@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-
+using System.Linq;
 using UnityEngine;
 using RimWorld;
 using Verse;
@@ -106,7 +106,6 @@ namespace SeedsPlease
             plantYield = Mathf.RoundToInt(plantYield * seedDef.seed.harvestFactor);
 
             return seedDef.harvest;
-
         }
 
         private static void MakeSeeds(SeedDef seedDef, int count, Pawn actor)
@@ -114,29 +113,32 @@ namespace SeedsPlease
             Thing seeds = ThingMaker.MakeThing(seedDef);
             seeds.stackCount = Mathf.RoundToInt(seedDef.seed.seedFactor * count);
 
-            if (true)// (!SeedsPleaseStatic.PickUpAndHaulLoaded)
-            {
-                GenPlace.TryPlaceThing(seeds, actor.Position, actor.Map, ThingPlaceMode.Near);
-                return;
-            }
-
-            // Generics cause type to try to be loaded earlier
-            var comp = (PickUpAndHaul.CompHauledToInventory)actor.AllComps.Find(c => c.GetType() == typeof(PickUpAndHaul.CompHauledToInventory));
-            if (comp == null)
+            if (!SeedsPleaseSettings.placeSeedsInInventory || actor.WorkTypeIsDisabled(WorkTypeDefOf.Hauling))
             {
                 GenPlace.TryPlaceThing(seeds, actor.Position, actor.Map, ThingPlaceMode.Near);
                 return;
             }
 
             var addedToInventory = actor.inventory.innerContainer.TryAdd(seeds);
-            if (addedToInventory)
-            {
-                comp.RegisterHauledItem(seeds);
-            }
-            else
+            if (!addedToInventory)
             {
                 GenPlace.TryPlaceThing(seeds, actor.Position, actor.Map, ThingPlaceMode.Near);
             }
+        }
+
+        public static void TryUnloadSeeds(Pawn pawn)
+        {
+            var hauledSeeds = pawn.inventory.innerContainer.Where(thing => thing.def is SeedDef);
+
+            if (pawn.Faction != Faction.OfPlayerSilentFail || !pawn.RaceProps.Humanlike
+                || pawn.carryTracker.CarriedThing is Corpse
+                || !hauledSeeds.Any())
+            {
+                return;
+            }
+
+            var job = new Job(ResourceBank.JobDefOf.UnloadSeeds, pawn);
+            pawn.jobs.jobQueue.EnqueueFirst(job, JobTag.Misc);
         }
     }
 }
