@@ -14,6 +14,20 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="..\Defs\JobDefs\Jobs_Custom.xml" Link="Defs\JobDefs\Jobs_Custom.xml" />
+    <Content Include="..\Defs\RecipeDefs\Recipes_Base.xml" Link="Defs\RecipeDefs\Recipes_Base.xml" />
+    <Content Include="..\Defs\RecipeDefs\Recipes_Plants_Core.xml" Link="Defs\RecipeDefs\Recipes_Plants_Core.xml" />
+    <Content Include="..\Defs\RecipeDefs\Recipes_Plants_Processing.xml" Link="Defs\RecipeDefs\Recipes_Plants_Processing.xml" />
+    <Content Include="..\Defs\ThingCategoryDefs\ThingCategories_Custom.xml" Link="Defs\ThingCategoryDefs\ThingCategories_Custom.xml" />
+    <Content Include="..\Defs\ThingDefs\Buildings_Production.xml" Link="Defs\ThingDefs\Buildings_Production.xml" />
+    <Content Include="..\Defs\ThingDefs\Items_Resource.xml" Link="Defs\ThingDefs\Items_Resource.xml" />
+    <Content Include="..\Defs\ThingDefs\Items_Seeds_Base.xml" Link="Defs\ThingDefs\Items_Seeds_Base.xml" />
+    <Content Include="..\Defs\ThingDefs\Items_Seeds_Core.xml" Link="Defs\ThingDefs\Items_Seeds_Core.xml" />
+    <Content Include="..\Defs\ThingDefs\Items_Seeds_Production.xml" Link="Defs\ThingDefs\Items_Seeds_Production.xml" />
+    <Content Include="..\Defs\TraderKindDefs\TraderGreenHouse.xml" Link="Defs\TraderKindDefs\TraderGreenHouse.xml" />
+    <Content Include="..\Defs\WorkGiverDefs\WorkGivers.xml" Link="Defs\WorkGiverDefs\WorkGivers.xml" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.0.2">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
@@ -33,5 +47,13 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Defs\JobDefs\" />
+    <Folder Include="Defs\WorkGiverDefs\" />
+    <Folder Include="Defs\TraderKindDefs\" />
+    <Folder Include="Defs\ThingDefs\" />
+    <Folder Include="Defs\ThingCategoryDefs\" />
+    <Folder Include="Defs\RecipeDefs\" />
   </ItemGroup>
 </Project>
