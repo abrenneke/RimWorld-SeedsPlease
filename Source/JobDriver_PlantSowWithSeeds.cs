@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using RimWorld;
 using Verse;
@@ -18,25 +17,21 @@ namespace SeedsPlease
         public override string GetReport ()
         {
             string text = JobDefOf.Sow.reportString;
-            if (job.plantDefToSow != null) {
-                text = text.Replace ("TargetA", GenLabel.ThingLabel (job.plantDefToSow, null, 1));
-            } else {
-                text = text.Replace ("TargetA", "area");
-            }
+            text = text.Replace("TargetA", job.plantDefToSow != null ? GenLabel.ThingLabel (job.plantDefToSow, null) : "area");
             return text;
         }
 
         public override void ExposeData ()
         {
             base.ExposeData ();
-            Scribe_Values.Look (ref sowWorkDone, "sowWorkDone", 0f, false);
+            Scribe_Values.Look (ref sowWorkDone, "sowWorkDone");
         }
 
         protected override IEnumerable<Toil> MakeNewToils ()
         {
             this.FailOnDespawnedNullOrForbidden (targetCellIndex);
 
-            yield return Toils_Reserve.Reserve (targetCellIndex, 1);
+            yield return Toils_Reserve.Reserve (targetCellIndex);
 
             var reserveSeeds = ReserveSeedsIfWillPlantWholeStack ();
             yield return reserveSeeds;
@@ -45,33 +40,39 @@ namespace SeedsPlease
                                    .FailOnDespawnedNullOrForbidden (seedsTargetIndex)
                                    .FailOnSomeonePhysicallyInteracting (seedsTargetIndex);
 
-            yield return Toils_Haul.StartCarryThing (seedsTargetIndex, false, false)
+            yield return Toils_Haul.StartCarryThing (seedsTargetIndex)
                                    .FailOnDestroyedNullOrForbidden (seedsTargetIndex);
 
-            Toils_Haul.CheckForGetOpportunityDuplicate (reserveSeeds, seedsTargetIndex, TargetIndex.None, false, null);
+            Toils_Haul.CheckForGetOpportunityDuplicate (reserveSeeds, seedsTargetIndex, TargetIndex.None);
 
             var toil = Toils_Goto.GotoCell (targetCellIndex, PathEndMode.Touch);
             yield return toil;
             yield return SowSeedToil ();
             yield return Toils_Reserve.Release (targetCellIndex);
             yield return TryToSetAdditionalPlantingSite ();
-            yield return Toils_Reserve.Reserve (targetCellIndex, 1);
+            yield return Toils_Reserve.Reserve (targetCellIndex);
             yield return Toils_Jump.Jump (toil);
         }
 
         Toil ReserveSeedsIfWillPlantWholeStack ()
         {
             return new Toil {
-                initAction = delegate {
-                    if (pawn.Faction == null) {
+                initAction = delegate
+                {
+                    if (pawn.Faction == null)
+                    {
                         return;
                     }
-                    var thing = job.GetTarget (seedsTargetIndex).Thing;
-                    if (pawn.carryTracker.CarriedThing == thing) {
+
+                    var thing = job.GetTarget(seedsTargetIndex).Thing;
+                    if (pawn.carryTracker.CarriedThing == thing)
+                    {
                         return;
                     }
-                    if (job.count >= thing.stackCount) {
-                        pawn.Reserve (thing, job, 1);
+
+                    if (job.count >= thing.stackCount)
+                    {
+                        pawn.Reserve(thing, job);
                     }
                 },
                 defaultCompleteMode = ToilCompleteMode.Instant,
@@ -81,68 +82,77 @@ namespace SeedsPlease
 
         Toil SowSeedToil ()
         {
-            var toil = new Toil ();
-            toil.defaultCompleteMode = ToilCompleteMode.Never;
-            toil.initAction = delegate {
+            var toil = new Toil
+            {
+                defaultCompleteMode = ToilCompleteMode.Never
+            };
+            toil.initAction = delegate
+            {
                 var actor = toil.actor;
-                if (IsActorCarryingAppropriateSeed (actor, job.plantDefToSow)) {
-
-                    var plant = (Plant)GenSpawn.Spawn (job.plantDefToSow, TargetLocA, actor.Map);
+                if (IsActorCarryingAppropriateSeed(actor, job.plantDefToSow))
+                {
+                    var plant = (Plant) GenSpawn.Spawn(job.plantDefToSow, TargetLocA, actor.Map);
                     plant.Growth = 0;
                     plant.sown = true;
 
                     job.targetC = plant;
 
-                    actor.Reserve (job.targetC, job, 1);
+                    actor.Reserve(job.targetC, job);
 
                     sowWorkDone = 0;
-                } else {
-                    EndJobWith (JobCondition.Incompletable);
+                }
+                else
+                {
+                    EndJobWith(JobCondition.Incompletable);
                 }
             };
-            toil.tickAction = delegate {
+            toil.tickAction = () =>
+            {
                 var actor = toil.actor;
 
-                var plant = (Plant)job.targetC.Thing;
+                var plant = (Plant) job.targetC.Thing;
 
-                if (actor.skills != null) {
-                    actor.skills.Learn (SkillDefOf.Plants, 0.22f);
+                actor.skills?.Learn(SkillDefOf.Plants, 0.22f);
+
+                if (plant.LifeStage != PlantLifeStage.Sowing)
+                {
+                    Log.Error(this + " getting sowing work while not in Sowing life stage.");
                 }
 
-                if (plant.LifeStage != PlantLifeStage.Sowing) {
-                    Log.Error (this + " getting sowing work while not in Sowing life stage.");
+                sowWorkDone += actor.GetStatValue(StatDefOf.PlantWorkSpeed);
+
+                if (!(sowWorkDone >= plant.def.plant.sowWork))
+                    return;
+
+                if (!IsActorCarryingAppropriateSeed(actor, job.plantDefToSow))
+                {
+                    EndJobWith(JobCondition.Incompletable);
+
+                    return;
                 }
 
-                sowWorkDone += StatExtension.GetStatValue (actor, StatDefOf.PlantWorkSpeed, true);
-
-                if (sowWorkDone >= plant.def.plant.sowWork) {
-
-                    if (!IsActorCarryingAppropriateSeed (actor, job.plantDefToSow)) {
-                        EndJobWith (JobCondition.Incompletable);
-
-                        return;
-                    }
-
-                    if (actor.carryTracker.CarriedThing.stackCount <= 1) {
-                        actor.carryTracker.CarriedThing.Destroy (DestroyMode.Cancel);
-                    } else {
-                        actor.carryTracker.CarriedThing.stackCount--;
-                    }
-
-                    plant.Growth = 0.05f;
-
-                    plant.Map.mapDrawer.MapMeshDirty (plant.Position, MapMeshFlag.Things);
-
-                    actor.records.Increment (RecordDefOf.PlantsSown);
-
-                    ReadyForNextToil ();
+                if (actor.carryTracker.CarriedThing.stackCount <= 1)
+                {
+                    actor.carryTracker.CarriedThing.Destroy(DestroyMode.Cancel);
                 }
+                else
+                {
+                    actor.carryTracker.CarriedThing.stackCount--;
+                }
+
+                plant.Growth = 0.05f;
+
+                plant.Map.mapDrawer.MapMeshDirty(plant.Position, MapMeshFlag.Things);
+
+                actor.records.Increment(RecordDefOf.PlantsSown);
+
+                ReadyForNextToil();
             };
             toil.defaultCompleteMode = ToilCompleteMode.Never;
             toil.FailOnDespawnedNullOrForbidden (targetCellIndex);
             toil.FailOnCannotTouch(targetCellIndex, PathEndMode.Touch);
             toil.WithEffect (EffecterDefOf.Sow, targetCellIndex);
-            toil.WithProgressBar (targetCellIndex, () => sowWorkDone / job.plantDefToSow.plant.sowWork, true, -0.5f);
+            toil.WithProgressBar (targetCellIndex, () => sowWorkDone / job.plantDefToSow.plant.sowWork, true);
             toil.PlaySustainerOrSound (() => SoundDefOf.Interact_Sow);
             toil.AddFinishAction (delegate {
                 var actor = toil.actor;
@@ -151,7 +161,7 @@ namespace SeedsPlease
                 if (thing != null) {
                     var plant = (Plant)thing;
                     if (sowWorkDone < plant.def.plant.sowWork && !thing.Destroyed) {
-                        thing.Destroy (DestroyMode.Vanish);
+                        thing.Destroy ();
                     }
 
                     actor.Map.reservationManager.Release (job.targetC, actor, job);
@@ -170,8 +180,7 @@ namespace SeedsPlease
             toil.initAction = delegate {
                 Pawn actor = toil.actor;
 
-                IntVec3 intVec;
-                if (IsActorCarryingAppropriateSeed (actor, job.plantDefToSow) && GetNearbyPlantingSite (job.GetTarget (targetCellIndex).Cell, actor.Map, out intVec)) {
+                if (IsActorCarryingAppropriateSeed (actor, job.plantDefToSow) && GetNearbyPlantingSite (job.GetTarget (targetCellIndex).Cell, actor.Map, out var intVec)) {
                     job.SetTarget (targetCellIndex, intVec);
 
                     return;
@@ -185,10 +194,11 @@ namespace SeedsPlease
 
         bool GetNearbyPlantingSite (IntVec3 originPos, Map map, out IntVec3 newSite)
         {
-            Predicate<IntVec3> validator = (IntVec3 tempCell) => IsCellOpenForSowingPlantOfType (tempCell, map, job.plantDefToSow)
-                && ReservationUtility.CanReserveAndReach (GetActor (), tempCell, PathEndMode.Touch, DangerUtility.NormalMaxDanger (GetActor ()), 1);
+            bool Validator(IntVec3 tempCell) => 
+                IsCellOpenForSowingPlantOfType(tempCell, map, job.plantDefToSow) 
+                && GetActor().CanReserveAndReach(tempCell, PathEndMode.Touch, GetActor().NormalMaxDanger());
 
-            return CellFinder.TryFindRandomCellNear (originPos, map, 2, validator, out newSite);
+            return CellFinder.TryFindRandomCellNear (originPos, map, 2, Validator, out newSite);
         }
 
         static bool IsCellOpenForSowingPlantOfType (IntVec3 cell, Map map, ThingDef plantDef)

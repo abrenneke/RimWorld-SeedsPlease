@@ -7,13 +7,21 @@
     <OutputPath>..\Assemblies\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <DebugType>None</DebugType>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.0.2">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
-    <Reference Include="RimWorld.PatchOperationLoadOnDemand" Version="1.2" >
+    <Reference Include="PickUpAndHaul">
+      <HintPath>..\..\..\..\..\Steam\steamapps\workshop\content\294100\1279012058\1.1\Assemblies\PickUpAndHaul.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="RimWorld.PatchOperationLoadOnDemand" Version="1.2">
       <ExcludeAssets>runtime</ExcludeAssets>
     </Reference>
     <Reference Include="Assembly-CSharp">

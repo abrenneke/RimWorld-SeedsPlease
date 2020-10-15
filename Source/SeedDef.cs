@@ -34,7 +34,7 @@ namespace SeedsPlease
                 value *= 1.5f;
             }
 
-            int cnt = thingDef.plant.wildBiomes?.Count() ?? 0;
+            int cnt = thingDef.plant.wildBiomes?.Count ?? 0;
             if (cnt > 1)
             {
                 value *= Mathf.Pow(0.95f, cnt);
@@ -156,14 +156,14 @@ namespace SeedsPlease
             {
                 var template = ResourceBank.ThingDefOf.Seed_Psychoid;
 
-                seed = new SeedDef()
+                seed = new SeedDef
                 {
                     defName = "Seed_" + name,
                     label = name.ToLower() + " seeds",
                     plant = thingDef,
                     harvest = thingDef.plant.harvestedThingDef,
                     stackLimit = template.stackLimit,
-                    seed = new SeedProperties() { harvestFactor = 1f, seedFactor = 1f, baseChance = 0.95f, extraChance = 0.15f },
+                    seed = new SeedProperties { harvestFactor = 1f, seedFactor = 1f, baseChance = 0.95f, extraChance = 0.15f },
                     tradeTags = template.tradeTags,
                     thingCategories = template.thingCategories,
                     soundDrop = template.soundDrop,
@@ -184,9 +184,8 @@ namespace SeedsPlease
                     category = template.category,
                     uiIcon = template.uiIcon,
                     uiIconColor = template.uiIconColor,
+                    BaseMarketValue = AssignMarketValueFromHarvest(thingDef),
                 };
-
-                seed.BaseMarketValue = AssignMarketValueFromHarvest(thingDef);
 
                 foreach(var category in seed.thingCategories) {
                     category.childThingDefs.Add(seed);
